@@ -25,7 +25,7 @@ The Quancom PCITTL32IO card (Vendor ID: 0x8008, Device ID: 0x3301) is a PCI card
 
 ## Playlist
 
-TBD.
+Here is a link to my [playlist](https://www.youtube.com/watch?v=GBq9rUqwQRI&list=RDCMUCHkwlexIsoJVa5g_G9g18GA&start_radio=1).
 
 ## Support my work
 
