@@ -5,12 +5,35 @@
 
 #define PCITTL32IO_ID 0x3301
 #define QUANCOM_ID 0x8008
+#define IRQ_GEN 0xf9
 
 static struct pci_device_id pcittl32io_ids[] = {
 	{PCI_DEVICE(QUANCOM_ID, PCITTL32IO_ID)},
 	{ }
 };
 MODULE_DEVICE_TABLE(pci, pcittl32io_ids);
+
+static int pcittl32io_irq_ctrl(struct uio_info *info, s32 irq_en)
+{
+	u8 val;
+
+	val = ioread8(info->mem[0].internal_addr + IRQ_GEN);
+	val &= ~1;
+	val |= (irq_en & 1);
+
+	iowrite8(val, info->mem[0].internal_addr + IRQ_GEN);
+
+	dev_info((&info->uio_dev->dev)->parent, "IRQ is %s\n", irq_en ? "enabled" : "disabled");
+	return 0;
+}
+
+static irqreturn_t pcittl32io_irq_handler(int irq_nr, struct uio_info *info)
+{
+	pcittl32io_irq_ctrl(info, 0);
+	dev_info((&info->uio_dev->dev)->parent, "IRQ was asserted\n");
+	return IRQ_HANDLED;
+}
+
 
 static int pcittl32io_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 {
@@ -51,6 +74,10 @@ static int pcittl32io_probe(struct pci_dev *pdev, const struct pci_device_id *id
 		goto free_region;
 	}
 
+	/* Add interrupt functions */
+	info->irq = pdev->irq;
+	info->handler = pcittl32io_irq_handler;
+	info->irqcontrol = pcittl32io_irq_ctrl;
 
 	status = uio_register_device(&pdev->dev, info);
 	if (status) {
